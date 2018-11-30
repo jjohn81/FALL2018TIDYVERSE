@@ -1,0 +1,131 @@
+---
+title: "Tidyverse - US Births"
+output:
+  html_document:
+    keep_md: yes
+    self_contained: no
+  pdf_document: default
+---
+```{r, echo = FALSE}
+knitr::opts_chunk$set(collapse=TRUE, comment="##", fig.retina=2, fig.path = "README_figs/README-")
+```
+#### Author 
+
+- Joby John
+
+
+#### Summary
+
+In this  exercise, I am using US_births_2000-2014_SSA.csv dataset. I am using the dplyr functions to sort, group, mutate and summarize data.  
+
+#### Load Libraries
+```{r load-libraries, eval=TRUE, message=FALSE, warning=FALSE}
+
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+
+options(knitr.table.format = "html")
+```
+
+
+
+
+Following steps are done : 
+
+- Read file into a dataframe
+
+- Used dplyr function create summary and display in a kable
+
+- USed dplyr to sort, group and mutate data
+
+- Ploted number of births using ggplot
+
+
+
+```{r load-data,message=FALSE, warning=FALSE }
+data_url <-'https://raw.githubusercontent.com/fivethirtyeight/data/master/births/US_births_2000-2014_SSA.csv'
+births_data <- read.csv(data_url)
+
+births_data_summary_by_year <-    births_data %>%
+                                  group_by( year )  %>% 
+                                  group_by(year, total_births = sum(births)) %>%
+                                  distinct(year,total_births)%>%
+                                  select(year, total_births)%>%
+                                  arrange(desc(total_births))
+```
+
+#### Number of births per year
+
+```{r}
+births_data_summary_by_year %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))  
+
+#Births peaked in 2007. Any correlation to great recession?
+
+ggplot(births_data_summary_by_year, aes(x= year, y= total_births)) + geom_line()
+
+```
+
+#### Number of births per month
+```{r}
+births_data_summary_by_month <-   births_data %>%
+                                  mutate(month = month.abb[month])%>%
+                                  group_by( month )  %>% 
+                                  group_by(month, total_births = sum(births)) %>%
+                                  distinct(month,total_births)%>%
+                                  select(month, total_births)%>%
+                                  arrange(desc(total_births))
+
+births_data_summary_by_month %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))  
+
+```
+
+#### Top 10 days 
+```{r}
+top_10_birth_days<- births_data %>% 
+            top_n(10, births) %>%
+            select(year, month,date_of_month,births)%>%
+            mutate(month = month.abb[month])%>%
+            arrange(desc(births))
+
+top_10_birth_days %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))  
+```
+
+#### Births per day
+```{r}
+births_data_summary_by_day_of_week <-    births_data %>%
+                                  group_by(day_of_week )  %>% 
+                                  group_by(day_of_week, total_births = sum(births)) %>%
+                                  distinct(day_of_week,total_births)%>%
+                                  select(day_of_week, total_births) %>%
+                                  arrange(desc(total_births))
+births_data_summary_by_day_of_week %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))  
+
+```
+
+#### Improvements
+
+- Are Super Bowl Babies A Real Thing? We could Use this dataset to see if that claim is valid or not. 
+
+- Convert numerical day of the week to actual day of the week. For example, 1 to sunday.
+
+- Further analysis could be done. For example, how does economy affects the number of births.
+
+
+#### References
+
+ https://raw.githubusercontent.com/fivethirtyeight/data/master/births/US_births_2000-2014_SSA.csv
+
+ https://www.bustle.com/articles/140278-are-super-bowl-babies-a-real-thing-one-commercial-makes-an-interesting-claim-video
+ 
